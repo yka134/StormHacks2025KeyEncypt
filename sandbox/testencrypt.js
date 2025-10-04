@@ -117,7 +117,7 @@ async function encryptText() {
 async function decryptText() {
     const inputText = document.getElementById("decrypt-input").value;
     const decrypted = await decryptEncryptedMessage(localShared, inputText);
-    document.getElementById("reuslt-text".innerHTML) = decrypted;
+    document.getElementById("result-text".innerHTML) = decrypted;
 }
 
 async function main() {
