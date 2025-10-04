@@ -1,4 +1,7 @@
 
+
+// Creates a private,public key pair for the local user
+// Returns the key pair on success
 async function makeKeys() {
     // Ensure crypto module is supported (it should be on all modern browsers)
     if (!window.crypto || !window.crypto.subtle) {
@@ -10,7 +13,7 @@ async function makeKeys() {
         const keyPair = await crypto.subtle.generateKey(
             { name: "ECDH", namedCurve: "P-256" },
             true,
-            ["deriveKey"]     // TODO: figure this out
+            ["deriveKey"]   // so that a shared key can be derived
         );
         console.log("Key pair generated successfully.");
         
@@ -18,18 +21,34 @@ async function makeKeys() {
     
     } catch (error) {
         console.error("Error generating keys: ", error);
-        //throw error;
+        throw error;
     }
 }
 
+// Using a local key pair, returns a stringified &
+// base64 encoded version of the public key (to make it easier to share)
 async function makeKeyToSend(keyPair) {
+    // Ensure crypto module is supported (it should be on all modern browsers)
+    if (!window.crypto || !window.crypto.subtle) {
+        console.error("Web Crypto API is not supported in this environment.");
+        return null;
+    }
+    
     const pubKey = await crypto.subtle.exportKey("jwk", keyPair.publicKey);
     const stringPubKey = JSON.stringify(pubKey);
     const base64PubKey = btoa(stringPubKey);
     return base64PubKey;
 }
 
+// Using a local key pair and the base64 version of the other
+// person's public key; creates a shared key to use for encrypt/decrypt
 async function makeDerivedKey(ourKeyPair, otherPubKey) {
+    // Ensure crypto module is supported (it should be on all modern browsers)
+    if (!window.crypto || !window.crypto.subtle) {
+        console.error("Web Crypto API is not supported in this environment.");
+        return null;
+    }
+    
     // Undo base64/stringify of other key
     const jwk = JSON.parse(atob(otherPubKey));
     const otherPubImported = await crypto.subtle.importKey(
@@ -52,7 +71,14 @@ async function makeDerivedKey(ourKeyPair, otherPubKey) {
     return sharedKey;
 }
 
+// Using the derived shared key, encrypts and returns a string
 async function generateEncryptedMessage(sharedKey, msg) {
+    // Ensure crypto module is supported (it should be on all modern browsers)
+    if (!window.crypto || !window.crypto.subtle) {
+        console.error("Web Crypto API is not supported in this environment.");
+        return null;
+    }
+    
     // Assume input is a string of base 64
     const enc = new TextEncoder();
     const data = enc.encode(msg);
@@ -77,7 +103,15 @@ async function generateEncryptedMessage(sharedKey, msg) {
     return base64Message;
 }
 
+// Using the derived shared key and an encrypted mesage;
+// decryptes and returns the string
 async function decryptEncryptedMessage(sharedKey, base64Message) {
+    // Ensure crypto module is supported (it should be on all modern browsers)
+    if (!window.crypto || !window.crypto.subtle) {
+        console.error("Web Crypto API is not supported in this environment.");
+        return null;
+    }
+    
     const combinedBytes = Uint8Array.from(atob(base64Message), c => c.charCodeAt(0));
 
     // extract the first 12 bytes (Init Vector)
@@ -97,6 +131,8 @@ async function decryptEncryptedMessage(sharedKey, base64Message) {
     return dec.decode(decrypted);
 }
 
+
+// local global variables
 let localShared;
 let localKeyPair;
 
