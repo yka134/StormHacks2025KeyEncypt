@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>gibkey</h1>
+
+    <h3>here is your (public) key (send this!!):</h3>
+    <h4 id="public-key-text">public key</h4>
+
+    <h4>other person's public key:</h4>
+    <input type="text" id="pub-key-input">
+    <button onclick="pubKeyInput()">submit</button>
+
+    <h3>super secret encrypter:</h3>
+    <input type="text" id="encrypt-input">
+    <button onclick="encryptText()">submit</button>
+    <h4 id="encrypted-text">result</h4>
+
+    <h3>super secret decrypter:</h3>
+    <input type="text" id="decrypt-input">
+    <button onclick="decryptText()">submit</button>
+    <h4 id="result-text">result</h4>
+
+</body>
+<script src="testencrypt.js"></script>
+</html>
