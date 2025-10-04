@@ -1,0 +1,66 @@
+body {
+  width: 220px;
+  padding: 12px;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+}
+
+.title {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+button {
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+.main-btn {
+  background-color: #4CAF50;
+  color: white;
+  padding: 8px;
+  margin-top: 6px;
+}
+
+.secondary-btn {
+  background-color: #2196F3;
+  color: white;
+  padding: 8px;
+  margin-top: 6px;
+}
+
+.input-group {
+  display: flex;
+  margin-top: 8px;
+}
+
+.button-group {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+#publicKeyInput {
+  flex: 1;
+  padding: 6px;
+  font-size: 13px;
+  border: 1px solid #ccc;
+  border-radius: 4px 0 0 4px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.small-btn {
+  padding: 6px 10px;
+  border-radius: 0 4px 4px 0;
+  margin-top: 0;
+}

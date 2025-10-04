@@ -1,28 +1,27 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Discord Caps Toggle</title>
-  <style>
-    body {
-      width: 180px;
-      padding: 10px;
-      font-family: sans-serif;
-    }
-    button {
-      width: 100%;
-      padding: 8px;
-      font-size: 14px;
-      cursor: pointer;
-    }
-    .active {
-      background-color: #4CAF50;
-      color: white;
-    }
-  </style>
-</head>
-<body>
-  <h3>Discord Caps</h3>
-  <button id="toggleButton">Turn ON</button>
-  <script src="popup.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8">
+    <title>Gibkey</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <h3 class="title">🔑 Gibkey</h3>
+
+    <div class="button-group">
+      <button id="toggleButton" class="main-btn">Toggle View</button>
+      <button id="copyKeyButton" class="secondary-btn">Copy Public Key</button>
+    </div>
+
+    <div class="input-group">
+      <input 
+        type="text" 
+        id="publicKeyInput" 
+        placeholder="Enter someone's public key..."
+      >
+      <button id="readKeyButton" class="main-btn small-btn">Read Key</button>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
 </html>
