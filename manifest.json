@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Encrypted Text Scanner",
+  "version": "1.0",
+  "description": "Scans webpages for ENCRYPTED[...] strings and replaces them with fake decrypted text.",
+  "permissions": ["activeTab", "scripting"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
+  },
+  "icons": {
+    "128": "icon.png"
+  }
+}
