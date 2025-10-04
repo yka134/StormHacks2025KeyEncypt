@@ -1,15 +1,19 @@
-html {
-    width: 400px;
-    height: 300px;
+html, body {
+  width: 400px;
+  height: 300px;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  width: 220px;
-  padding: 12px;
-  margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   font-family: Arial, sans-serif;
   background-color: #f9f9f9;
 }
+
 
 .title {
   text-align: center;
