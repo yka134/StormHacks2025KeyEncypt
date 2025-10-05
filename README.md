@@ -4,6 +4,8 @@ A browser extension that allows for end-to-end encryption on any messaging platf
 
 ![GibKey](GibKey.jpg)
 
+[View Our Presentation Slides](GibKey-Slides.pdf)
+
 ## Features
 
 - Generate a unique public/private key pair per user
