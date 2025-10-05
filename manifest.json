@@ -1,31 +1,37 @@
 {
   "manifest_version": 3,
-  "name": "Clipboard Encrypt Shortcut",
-  "version": "1.4",
-  "description": "Hotkey Encrypts whatever you type into ENCRYPTED[...] and copies it to clipboard.",
+  "name": "GibKey",
+  "version": "1.0",
+  "description": "Encrypts messages and decrypts ENCRYPTED[...] text with key exchange.",
   "permissions": [
     "scripting",
     "activeTab",
+    "clipboardRead",
     "clipboardWrite",
+    "storage",
     "commands"
   ],
-  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
   "action": {
     "default_popup": "popup.html",
-    "default_icon": "icon.png"
-  },
-  "icons": {
-    "128": "icon.png"
-  },
-  "background": {
-    "service_worker": "background.js"
+    "default_title": "GibKey",
+    "default_icon": "GibKeyIcon.png"
   },
   "commands": {
     "insert_encrypted": {
       "suggested_key": {
-        "default": "Ctrl+Shift+E"
+        "default": "Ctrl+Shift+E",
+        "mac": "Command+Shift+E"
       },
-      "description": "Encrypt the current text and copy to clipboard"
+      "description": "Encrypt and copy typed text"
     }
+  },
+  "host_permissions": ["<all_urls>"],
+
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
   }
 }

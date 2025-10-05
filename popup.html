@@ -1,27 +1,112 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Gibkey</title>
-    <link rel="stylesheet" href="popup.css">
-  </head>
-  <body>
-    <h3 class="title">🔑 Gibkey</h3>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Encrypted Messenger</title>
+  <style>
+    body {
+      width: 280px;
+      font-family: system-ui, sans-serif;
+      background: #1e1e1e;
+      color: #fff;
+      margin: 0;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
 
-    <div class="button-group">
-      <button id="decryptButton" class="main-btn">Decrypt</button>
-      <button id="copyKeyButton" class="secondary-btn">Copy Public Key</button>
-    </div>
+    h1 {
+      font-size: 24px;
+      margin-bottom: 6px;
+      text-align: center;
+      color: #4fc3f7;
+    }
 
-    <div class="input-group">
-      <input 
-        type="text" 
-        id="publicKeyInput" 
-        placeholder="Enter someone's public key..."
-      >
-      <button id="readKeyButton" class="main-btn small-btn">Read Key</button>
-    </div>
+    input {
+      flex: 1;
+      padding: 8px;
+      border-radius: 6px;
+      border: none;
+      outline: none;
+      background: #333;
+      color: #fff;
+    }
 
-    <script type="module" src="popup.js"></script>
-  </body>
+    button {
+      background: #4fc3f7;
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    button:hover {
+      background: #03a9f4;
+    }
+
+    button.active {
+      background: #ff4081;
+      color: #fff;
+    }
+
+    .row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .center {
+      display: flex;
+      justify-content: center;
+    }
+
+    small {
+      font-size: 11px;
+      color: #ccc;
+      text-align: center;
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(40,40,40,0.95);
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+  </style>
+</head>
+<body>
+  <h1>GibKey Encrypter</h1>
+<small></small>
+  <div class="row">
+    <input id="publicKeyInput" placeholder="Paste friend's public key here" />
+    <button id="readKeyButton">Scan Key</button>
+  </div>
+<small></small>
+  <div class="row">
+    <button id="copyKeyButton">Copy My Public Key</button>
+      <small>(send to friend)</small>
+  </div>
+<small></small>
+  <button id="decryptButton">Decrypt Text on Screen</button>
+
+  <small>Use <b>Ctrl+Shift+E</b> (or Cmd+Shift+E) while typing to copy encrypted text.</small>
+
+  <div id="toast"></div>
+
+  <script type="module" src="popup.js"></script>
+</body>
 </html>
