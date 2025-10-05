@@ -1,10 +1,11 @@
+import { localShared, generateEncryptedMessage } from "./encrypt.js";
+
 chrome.commands.onCommand.addListener(async (command) => {
   if (command !== "insert_encrypted") return;
 
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (!tab || !tab.id) return;
-  if (!/^https?:\/\//.test(tab.url)) {
-    console.warn("Cannot run on this page:", tab.url);
+  if (!tab?.id || !/^https?:\/\//.test(tab.url)) {
+    console.warn("Cannot run on this page:", tab?.url);
     return;
   }
 
@@ -18,10 +19,8 @@ chrome.commands.onCommand.addListener(async (command) => {
   }
 });
 
-// This runs in the page context
 async function captureAndEncryptUserText() {
   const active = document.activeElement;
-
   if (
     !(
       active &&
@@ -34,7 +33,6 @@ async function captureAndEncryptUserText() {
     return;
   }
 
-  // Get text content based on element type
   let text = "";
   if (active.tagName === "TEXTAREA" || active.tagName === "INPUT") {
     text = active.value.trim();
@@ -43,22 +41,47 @@ async function captureAndEncryptUserText() {
   }
 
   if (!text) {
-    showToast("No text found to encrypt!");
+    showToast("No text to encrypt!");
     return;
   }
 
-  // Wrap in ENCRYPTED[]
-  const encrypted = `ENCRYPTED[${text}]`;
+  // Retrieve stored shared key
+  const { sharedKey: base64Key } = await chrome.storage.local.get("sharedKey");
+  if (!base64Key) {
+    showToast("No shared key found! Please exchange keys first.");
+    return;
+  }
+
+  const raw = Uint8Array.from(atob(base64Key), c => c.charCodeAt(0));
+  const sharedKey = await crypto.subtle.importKey(
+    "raw",
+    raw,
+    { name: "AES-GCM" },
+    true,
+    ["encrypt"]
+  );
+
+  // Encrypt message
+  const enc = new TextEncoder();
+  const data = enc.encode(text);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, sharedKey, data);
+
+  const combined = new Uint8Array(iv.length + encrypted.byteLength);
+  combined.set(iv);
+  combined.set(new Uint8Array(encrypted), iv.length);
+  const base64Encrypted = btoa(String.fromCharCode(...combined));
+
+  const wrapped = `ENCRYPTED[${base64Encrypted}]`;
 
   try {
-    await navigator.clipboard.writeText(encrypted);
+    await navigator.clipboard.writeText(wrapped);
     showToast("Encrypted text copied to clipboard!");
   } catch (err) {
     console.error("Clipboard write failed:", err);
-    showToast("Clipboard access denied. Try again after focusing on the page.");
+    showToast("Clipboard access denied!");
   }
 
-  // Toast notification helper
   function showToast(message) {
     const existing = document.getElementById("encrypt-toast");
     if (existing) existing.remove();
