@@ -1,47 +1,127 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const button = document.getElementById("toggleButton");
+import { localKeyPair, localShared, makeKeys,
+  makeKeyToSend, makeDerivedKey, decryptEncryptedMessage } from "./encrypt";
 
-  if (!button) {
-    console.error("Button with id 'toggleButton' not found in popup.html.");
+document.addEventListener("DOMContentLoaded", async () => {
+  // Generate and store the keypair on init
+  try {
+    const keyPair = await makeKeys();
+    localKeyPair.value = keyPair; // assuming localKeyPair is an object with a .value property
+    console.log("Key pair generated:", keyPair);
+  } catch (err) {
+    console.error("Error generating key pair:", err);
+  }
+
+  const decryptButton = document.getElementById("decryptButton");
+  if (!decryptButton) {
+    console.error("Button with id 'decryptButton' not found in popup.html.");
     return;
   }
 
-  let isActive = false;
+  const copyKeyButton = document.getElementById("copyKeyButton");
+  if (!copyKeyButton) {
+    console.error("Button with id 'copyKeyButton' not found in popup.html.");
+    return;
+  }
 
-  button.addEventListener("click", async () => {
-    let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const readKeyButton = document.getElementById("readKeyButton");
+  if (!readKeyButton) {
+    console.error("Button with id 'readKeyButton' not found in popup.html.");
+    return;
+  }
 
-    // Prevent running on restricted Chrome URLs
-    if (!tab.url || tab.url.startsWith("chrome://") || tab.url.startsWith("chrome-extension://")) {
-      alert("This extension cannot run on Chrome internal pages.");
+  const publicKeyInput = document.getElementById("publicKeyInput");
+  if (!publicKeyInput) {
+    console.error("Input with id 'publicKeyInput' not found in popup.html.");
+    return;
+  }
+
+  // When Read Key is pressed
+  readKeyButton.addEventListener("click", async () => {
+    const theirPublicKey = publicKeyInput.value.trim();
+    if (!theirPublicKey) {
+      console.error("Public key input is empty.");
+      alert("Please paste a public key first!");
       return;
     }
 
-    isActive = !isActive;
-    button.textContent = isActive ? "Turn OFF" : "Turn ON";
-    button.classList.toggle("active", isActive);
-
-    chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      func: scanAndDecrypt,
-      args: [isActive]
-    });
+    try {
+      const derivedKey = await makeDerivedKey(theirPublicKey);
+      localShared.value = derivedKey; // store shared key
+      console.log("Derived shared key set:", derivedKey);
+      alert("Key successfully read and shared key derived!");
+    } catch (err) {
+      console.error("Error deriving key:", err);
+      alert("Failed to derive key. Check the public key format.");
+    }
   });
+
+  // When Copy Public Key is pressed
+  copyKeyButton.addEventListener("click", async () => {
+    try {
+      if (!localKeyPair.value) {
+        alert("Key pair not generated yet.");
+        return;
+      }
+
+      // Get the public key to send
+      const base64Key = await makeKeyToSend(localKeyPair.value);
+
+      // Copy to clipboard
+      await navigator.clipboard.writeText(base64Key);
+
+      console.log("Copied public key:", base64Key);
+      alert("Public key copied to clipboard!");
+    } catch (err) {
+      console.error("Error copying public key:", err);
+      alert("Failed to copy public key.");
+    }
+  });
+
+  // When Decrypt is pressed
+  decryptButton.addEventListener("click", async () => {
+    console.log("Decrypt button clicked");
+    scanAndDecrypt(true);
+  });
+
+
+
 });
+
+// Helper: async version of String.replace
+async function replaceAsync(str, regex, asyncFn) {
+  const promises = [];
+  str.replace(regex, (match, ...args) => {
+    promises.push(asyncFn(match, ...args));
+    return match;
+  });
+  const data = await Promise.all(promises);
+  return str.replace(regex, () => data.shift());
+}
+
 
 function scanAndDecrypt(enable) {
   if (!enable) return;
 
   const encryptedPattern = /ENCRYPTED\[([^\]]*)\]/g;
 
-  function fakeDecrypt(str) {
-    const length = str.length;
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-    let result = "";
-    for (let i = 0; i < length; i++) {
-      result += letters.charAt(Math.floor(Math.random() * letters.length));
+  async function handleText(textNode) {
+    const text = textNode.nodeValue;
+    if (!text.includes("ENCRYPTED[")) return;
+
+    // Replace all encrypted segments with their decrypted form
+    const newText = await replaceAsync(text, encryptedPattern, async (match, inner) => {
+      try {
+        const decrypted = await decryptEncryptedMessage(inner);
+        return decrypted;
+      } catch (err) {
+        console.error("Decryption failed for:", inner, err);
+        return "[Decryption Error]";
+      }
+    });
+
+    if (newText !== text) {
+      textNode.nodeValue = newText;
     }
-    return result;
   }
 
   function walk(node) {
@@ -62,20 +142,6 @@ function scanAndDecrypt(enable) {
       case 3:
         handleText(node);
         break;
-    }
-  }
-
-  function handleText(textNode) {
-    const text = textNode.nodeValue;
-    if (!text.includes("ENCRYPTED[")) return;
-
-    const newText = text.replace(encryptedPattern, (match, inner) => {
-      const decrypted = fakeDecrypt(inner);
-      return decrypted;
-    });
-
-    if (newText !== text) {
-      textNode.nodeValue = newText;
     }
   }
 
