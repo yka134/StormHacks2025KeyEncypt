@@ -6,11 +6,24 @@
     <link rel="stylesheet" href="popup.css">
   </head>
   <body>
-    <h3 class="title">🔑 Gibkey</h3>
+    <div class="container">
+      <h3 class="title">🔑 Gibkey</h3>
 
+      <button id="copyPubBtn">Copy Public Key</button>
+      <button id="pastePrivBtn">Paste Private Key</button>
 
+      <div class="section">
+        <h4>Encrypter</h4>
+        <input type="text" placeholder="Type your plaintext message here..." id="encrypterInput">
+        <button id="encrypterBtn">Encrypt Text</button>
+      </div>
 
-
+      <div class="section">
+        <h4>Decrypter</h4>
+        <input type="text" placeholder="Paste the encrypted message here..." id="decrypterInput">
+        <button id="decrypterBtn">Decrypt Text</button>
+      </div>
+    </div>
 
     <script type="module" src="popup.js"></script>
   </body>
