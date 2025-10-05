@@ -6,12 +6,22 @@ import {
   makeDerivedKey,
 } from "./encrypt.js";
 
+// toast system
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  if (!toast) return;
 
-  // Generate and store local keypair
+  toast.textContent = message;
+  toast.style.opacity = "1";
+  setTimeout(() => {
+    toast.style.opacity = "0";
+  }, 2500);
+}
+
+// Generate / load local keypair
 async function loadOrGenerateKeys() {
   const data = await chrome.storage.local.get(["privateKeyJwk", "publicKeyJwk"]);
   if (data.privateKeyJwk && data.publicKeyJwk) {
-    // Import stored keys
     const privateKey = await crypto.subtle.importKey(
       "jwk",
       data.privateKeyJwk,
@@ -29,7 +39,6 @@ async function loadOrGenerateKeys() {
     localKeyPair.value = { privateKey, publicKey };
     console.log("Loaded existing keypair.");
   } else {
-    // Generate and save new keypair
     const keyPair = await makeKeys();
     const privateKeyJwk = await crypto.subtle.exportKey("jwk", keyPair.privateKey);
     const publicKeyJwk = await crypto.subtle.exportKey("jwk", keyPair.publicKey);
@@ -38,12 +47,13 @@ async function loadOrGenerateKeys() {
     console.log("Generated new keypair and saved.");
   }
 }
-document.addEventListener("DOMContentLoaded", async () => {
-  try{await loadOrGenerateKeys();
 
-  }
-  catch (err) {
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    await loadOrGenerateKeys();
+  } catch (err) {
     console.error("Error generating key pair:", err);
+    showToast("Key generation failed");
   }
 
   const decryptButton = document.getElementById("decryptButton");
@@ -52,69 +62,78 @@ document.addEventListener("DOMContentLoaded", async () => {
   const publicKeyInput = document.getElementById("publicKeyInput");
 
   if (!decryptButton || !copyKeyButton || !readKeyButton || !publicKeyInput) {
-    console.error("Some popup elements are missing.");
+    console.error("Popup elements missing.");
     return;
   }
 
   // Copy public key
   copyKeyButton.addEventListener("click", async () => {
-    if (!localKeyPair.value) return alert("Generate keypair first.");
+    if (!localKeyPair.value) {
+      showToast("Generate keypair first.");
+      return;
+    }
+
     const base64Key = await makeKeyToSend(localKeyPair.value);
     await navigator.clipboard.writeText(base64Key);
-    alert("Public key copied to clipboard!");
+    showToast("Public key copied!");
   });
 
-  // Read other user's public key
+
+  //Read friend's public key
   readKeyButton.addEventListener("click", async () => {
     const theirKey = publicKeyInput.value.trim();
-    if (!theirKey) return alert("Please paste a public key first!");
+    if (!theirKey) return showToast("Paste a public key first!");
 
     try {
       const derivedKey = await makeDerivedKey(localKeyPair.value, theirKey);
       localShared.value = derivedKey;
 
-      // Export and store shared key
       const raw = await crypto.subtle.exportKey("raw", derivedKey);
       const base64Key = btoa(String.fromCharCode(...new Uint8Array(raw)));
       await chrome.storage.local.set({ sharedKey: base64Key });
 
       console.log("Shared key stored successfully.");
-      alert("Shared key derived and saved!");
+      showToast("Shared key saved!");
     } catch (err) {
       console.error("Error deriving key:", err);
-      alert("Failed to derive key.");
+      showToast("Failed to derive key.");
     }
   });
 
-  // Toggle decryption scanner
-  let isActive = false;
+
+  // refresh decrypt (no toggle)
   decryptButton.addEventListener("click", async () => {
-    let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab || tab.url.startsWith("chrome://")) {
-      alert("Cannot run on internal Chrome pages.");
+      showToast("Cannot run on this page!");
       return;
     }
 
-    isActive = !isActive;
-    decryptButton.textContent = isActive ? "Turn OFF" : "Turn ON";
+    decryptButton.textContent = "Decrypting...";
+    decryptButton.disabled = true;
 
-    chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      func: scanAndDecrypt,
-      args: [isActive],
-    });
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: scanAndDecrypt,
+      });
+    } catch (err) {
+      console.error("Error running decrypt:", err);
+      showToast("Decryption failed.");
+    } finally {
+      decryptButton.textContent = "Decrypt Text on Screen";
+      decryptButton.disabled = false;
+    }
   });
 });
 
-// Injected into page — scans and decrypts text
-async function scanAndDecrypt(enable) {
-  if (!enable) return;
+// Function injected into the page
+async function scanAndDecrypt() {
   const encryptedPattern = /ENCRYPTED\[([^\]]+)\]/g;
 
-  // Load shared key from storage
   const { sharedKey: base64Key } = await chrome.storage.local.get("sharedKey");
   if (!base64Key) {
-    alert("No shared key found! Please exchange keys first.");
+    injectToast("No shared key found! Please input friend's key first.");
     return;
   }
 
@@ -138,7 +157,7 @@ async function scanAndDecrypt(enable) {
         ciphertext
       );
       return new TextDecoder().decode(decrypted);
-    } catch (e) {
+    } catch {
       return "[DECRYPTION_FAILED]";
     }
   }
@@ -160,15 +179,44 @@ async function scanAndDecrypt(enable) {
     while (child) {
       const next = child.nextSibling;
       if (child.nodeType === 3) handleText(child);
-      else if (
-        child.nodeType === 1 &&
-        !["SCRIPT", "STYLE", "IFRAME"].includes(child.tagName)
-      )
+      else if (child.nodeType === 1 && !["SCRIPT", "STYLE", "IFRAME"].includes(child.tagName))
         walk(child);
       child = next;
     }
   }
 
   walk(document.body);
-  alert("Decryption complete on visible text!");
+  injectToast("Decryption complete! All ENCRYPTED[…] texts processed.");
+
+  //Toast shown in page context
+  function injectToast(message) {
+    const existing = document.getElementById("decrypt-toast");
+    if (existing) existing.remove();
+
+    const toast = document.createElement("div");
+    toast.id = "decrypt-toast";
+    toast.textContent = message;
+    Object.assign(toast.style, {
+      position: "fixed",
+      bottom: "30px",
+      right: "30px",
+      background: "rgba(40,40,40,0.95)",
+      color: "#fff",
+      padding: "10px 16px",
+      borderRadius: "8px",
+      fontFamily: "system-ui, sans-serif",
+      fontSize: "14px",
+      zIndex: 2147483647,
+      boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+      opacity: "0",
+      transition: "opacity 0.4s ease",
+    });
+
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => (toast.style.opacity = "1"));
+    setTimeout(() => {
+      toast.style.opacity = "0";
+      setTimeout(() => toast.remove(), 400);
+    }, 2000);
+  }
 }
