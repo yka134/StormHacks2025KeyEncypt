@@ -17,9 +17,7 @@
   "icons": {
     "128": "icon.png"
   },
-  "background": {
-    "service_worker": "background.js"
-  },
+
   "commands": {
     "insert_encrypted": {
       "suggested_key": {
