@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     try {
-      const derivedKey = await makeDerivedKey(theirPublicKey);
+      const derivedKey = await makeDerivedKey(localKeyPair.value, theirPublicKey);
       localShared.value = derivedKey; // store shared key
       console.log("Derived shared key set:", derivedKey);
       alert("Key successfully read and shared key derived!");
