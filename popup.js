@@ -6,13 +6,43 @@ import {
   makeDerivedKey,
 } from "./encrypt.js";
 
-document.addEventListener("DOMContentLoaded", async () => {
+
   // Generate and store local keypair
-  try {
+async function loadOrGenerateKeys() {
+  const data = await chrome.storage.local.get(["privateKeyJwk", "publicKeyJwk"]);
+  if (data.privateKeyJwk && data.publicKeyJwk) {
+    // Import stored keys
+    const privateKey = await crypto.subtle.importKey(
+      "jwk",
+      data.privateKeyJwk,
+      { name: "ECDH", namedCurve: "P-256" },
+      true,
+      ["deriveKey"]
+    );
+    const publicKey = await crypto.subtle.importKey(
+      "jwk",
+      data.publicKeyJwk,
+      { name: "ECDH", namedCurve: "P-256" },
+      true,
+      []
+    );
+    localKeyPair.value = { privateKey, publicKey };
+    console.log("Loaded existing keypair.");
+  } else {
+    // Generate and save new keypair
     const keyPair = await makeKeys();
+    const privateKeyJwk = await crypto.subtle.exportKey("jwk", keyPair.privateKey);
+    const publicKeyJwk = await crypto.subtle.exportKey("jwk", keyPair.publicKey);
+    await chrome.storage.local.set({ privateKeyJwk, publicKeyJwk });
     localKeyPair.value = keyPair;
-    console.log("Key pair ready.");
-  } catch (err) {
+    console.log("Generated new keypair and saved.");
+  }
+}
+document.addEventListener("DOMContentLoaded", async () => {
+  try{await loadOrGenerateKeys();
+
+  }
+  catch (err) {
     console.error("Error generating key pair:", err);
   }
 
