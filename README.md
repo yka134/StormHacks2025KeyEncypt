@@ -1,6 +1,6 @@
 # Gibkey
 
-A browser extension that allow for end-to-end encryption on any messaging platform (such as Discord) using **ECDH** and **AES-GCM** encryption.  
+A browser extension that allow for end-to-end encryption on any messaging platform (such as Discord) using **ECDH** and **AES-GCM** encryption. Outsiders reading the encrypted messages might as well be reading GIBBERISH
 
 ![GibKey](GibKey.jpg)
 
