@@ -77,26 +77,30 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // When Decrypt is pressed
-  decryptButton.addEventListener("click", async () => {
-    console.log("Decrypt button clicked");
-    scanAndDecrypt(true);
-  });
+    let isActive = false;
 
+    decryptButton.addEventListener("click", async () => {
+    let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+    // Prevent running on restricted Chrome URLs
+    if (!tab.url || tab.url.startsWith("chrome://") || tab.url.startsWith("chrome-extension://")) {
+      alert("This extension cannot run on Chrome internal pages.");
+      return;
+    }
+
+    isActive = !isActive;
+    decryptButton.textContent = isActive ? "Turn OFF" : "Turn ON";
+    decryptButton.classList.toggle("active", isActive);
+
+    chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: scanAndDecrypt,
+      args: [isActive]
+    });
+  });
 
 
 });
-
-// Helper: async version of String.replace
-async function replaceAsync(str, regex, asyncFn) {
-  const promises = [];
-  str.replace(regex, (match, ...args) => {
-    promises.push(asyncFn(match, ...args));
-    return match;
-  });
-  const data = await Promise.all(promises);
-  return str.replace(regex, () => data.shift());
-}
 
 
 function scanAndDecrypt(enable) {
@@ -104,24 +108,14 @@ function scanAndDecrypt(enable) {
 
   const encryptedPattern = /ENCRYPTED\[([^\]]*)\]/g;
 
-  async function handleText(textNode) {
-    const text = textNode.nodeValue;
-    if (!text.includes("ENCRYPTED[")) return;
-
-    // Replace all encrypted segments with their decrypted form
-    const newText = await replaceAsync(text, encryptedPattern, async (match, inner) => {
-      try {
-        const decrypted = await decryptEncryptedMessage(inner);
-        return decrypted;
-      } catch (err) {
-        console.error("Decryption failed for:", inner, err);
-        return "[Decryption Error]";
-      }
-    });
-
-    if (newText !== text) {
-      textNode.nodeValue = newText;
+  function fakeDecrypt(str) {
+    const length = str.length;
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    let result = "";
+    for (let i = 0; i < length; i++) {
+      result += letters.charAt(Math.floor(Math.random() * letters.length));
     }
+    return result;
   }
 
   function walk(node) {
@@ -142,6 +136,20 @@ function scanAndDecrypt(enable) {
       case 3:
         handleText(node);
         break;
+    }
+  }
+
+  function handleText(textNode) {
+    const text = textNode.nodeValue;
+    if (!text.includes("ENCRYPTED[")) return;
+
+    const newText = text.replace(encryptedPattern, (match, inner) => {
+      const decrypted = fakeDecrypt(inner);
+      return decrypted;
+    });
+
+    if (newText !== text) {
+      textNode.nodeValue = newText;
     }
   }
 
