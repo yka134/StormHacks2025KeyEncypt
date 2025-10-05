@@ -1,30 +1,32 @@
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
     <meta charset="UTF-8">
     <title>Gibkey</title>
     <link rel="stylesheet" href="popup.css">
-  </head>
-  <body>
+</head>
+<body>
     <div class="container">
-      <h3 class="title">🔑 Gibkey</h3>
+        <h3 class="title">🔑 Gibkey</h3>
 
-      <button id="copyPubBtn">Copy Public Key</button>
-      <button id="pastePrivBtn">Paste Private Key</button>
+        <h3>Your Public Key:</h3>
+        <h4 id="public-key-text">public key</h4>
 
-      <div class="section">
-        <h4>Encrypter</h4>
-        <input type="text" placeholder="Type your plaintext message here..." id="encrypterInput">
-        <button id="encrypterBtn">Encrypt Text</button>
-      </div>
+        <h4>Other Person's Public Key:</h4>
+        <input type="text" id="pub-key-input">
+        <button id="pub-key-submit">submit</button>
 
-      <div class="section">
-        <h4>Decrypter</h4>
-        <input type="text" placeholder="Paste the encrypted message here..." id="decrypterInput">
-        <button id="decrypterBtn">Decrypt Text</button>
-      </div>
+        <h3>Encrypter:</h3>
+        <input type="text" id="encrypt-input">
+        <button id="encrypt-submit">submit</button>
+        <h4 id="encrypted-text">result</h4>
+
+        <h3>Decrypter:</h3>
+        <input type="text" id="decrypt-input">
+        <button id="decrypt-submit">submit</button>
+        <h4 id="result-text">result</h4>
     </div>
 
-    <script type="module" src="popup.js"></script>
-  </body>
+    <script src="testencrypt.js"></script>
+</body>
 </html>
