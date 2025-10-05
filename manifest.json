@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Encrypted Messenger",
+  "name": "GibKey",
   "version": "1.0",
   "description": "Encrypts messages and decrypts ENCRYPTED[...] text with key exchange.",
   "permissions": [
@@ -18,7 +18,7 @@
   "action": {
     "default_popup": "popup.html",
     "default_title": "Encrypted Messenger",
-    "default_icon": "icon.png"
+    "default_icon": "GibKeyIcon.png"
   },
   "commands": {
     "insert_encrypted": {
