@@ -17,7 +17,7 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Encrypted Messenger",
+    "default_title": "GibKey",
     "default_icon": "GibKeyIcon.png"
   },
   "commands": {

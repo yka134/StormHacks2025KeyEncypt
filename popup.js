@@ -1,3 +1,5 @@
+// popup.js
+
 import {
   localKeyPair,
   localShared,
@@ -61,6 +63,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const readKeyButton = document.getElementById("readKeyButton");
   const publicKeyInput = document.getElementById("publicKeyInput");
 
+  // Ensure elements exist
   if (!decryptButton || !copyKeyButton || !readKeyButton || !publicKeyInput) {
     console.error("Popup elements missing.");
     return;
@@ -73,6 +76,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
+// Get base64 public key
     const base64Key = await makeKeyToSend(localKeyPair.value);
     await navigator.clipboard.writeText(base64Key);
     showToast("Public key copied!");
@@ -128,6 +132,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 // Function injected into the page
+// Scans for ENCRYPTED[...] patterns and decrypts them
 async function scanAndDecrypt() {
   const encryptedPattern = /ENCRYPTED\[([^\]]+)\]/g;
 
@@ -137,6 +142,7 @@ async function scanAndDecrypt() {
     return;
   }
 
+  // Import the shared AES-GCM key
   const raw = Uint8Array.from(atob(base64Key), c => c.charCodeAt(0));
   const sharedKey = await crypto.subtle.importKey(
     "raw",
@@ -146,6 +152,7 @@ async function scanAndDecrypt() {
     ["decrypt"]
   );
 
+  // Decrypts a single base64-encoded encrypted string
   async function decryptInline(base64Str) {
     try {
       const combined = Uint8Array.from(atob(base64Str), c => c.charCodeAt(0));
@@ -162,6 +169,7 @@ async function scanAndDecrypt() {
     }
   }
 
+  // Process text nodes
   async function handleText(node) {
     const text = node.nodeValue;
     if (!text.includes("ENCRYPTED[")) return;
@@ -174,6 +182,7 @@ async function scanAndDecrypt() {
     node.nodeValue = newText;
   }
 
+  // Walk the DOM tree (for message body)
   function walk(node) {
     let child = node.firstChild;
     while (child) {
@@ -185,6 +194,7 @@ async function scanAndDecrypt() {
     }
   }
 
+  //  Start walking from body of message
   walk(document.body);
   injectToast("Decryption complete! All ENCRYPTED[…] texts processed.");
 
@@ -193,6 +203,7 @@ async function scanAndDecrypt() {
     const existing = document.getElementById("decrypt-toast");
     if (existing) existing.remove();
 
+    // Create toast element
     const toast = document.createElement("div");
     toast.id = "decrypt-toast";
     toast.textContent = message;
@@ -212,6 +223,7 @@ async function scanAndDecrypt() {
       transition: "opacity 0.4s ease",
     });
 
+    // Append and show
     document.body.appendChild(toast);
     requestAnimationFrame(() => (toast.style.opacity = "1"));
     setTimeout(() => {
