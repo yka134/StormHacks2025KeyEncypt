@@ -2,7 +2,7 @@
 
 A browser extension that allow for end-to-end encryption on any messaging platform (such as Discord) using **ECDH** and **AES-GCM** encryption.  
 
-(Picture here)
+![GibKey](GibKey.jpg)
 
 ## Features
 
@@ -10,11 +10,6 @@ A browser extension that allow for end-to-end encryption on any messaging platfo
 - Easily share public keys as a Base64 string
 - Automatically decrypt any encrypted messages
 - No messages are stored; all encryption/decryption happens locally in the browser
-
-## Usage
-
-1. step 1
-2. step 2
 
 ## Installation
 
