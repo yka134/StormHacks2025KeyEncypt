@@ -1,5 +1,5 @@
 import { localKeyPair, localShared, makeKeys,
-  makeKeyToSend, makeDerivedKey, decryptEncryptedMessage } from "./encrypt";
+  makeKeyToSend, makeDerivedKey, decryptEncryptedMessage } from "./encrypt.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
   // Generate and store the keypair on init
